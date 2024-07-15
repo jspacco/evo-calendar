@@ -421,10 +421,25 @@ tr.calendar-body .calendar-day .day[disabled] {
     transform: translateY(-50%);
 }
 .event-container > .event-info > p.event-desc {
-    font-size: 14px;
-    margin-top: 5px;
+    font-size: 16px;
+    margin-top: 8px;
 }
 
+.event-container > .event-info > p.event-loc {
+    font-size: 16px;
+    margin-top: 8px;
+    text-align: left;
+}
+
+.event-container > .event-info > p.event-tags {
+    font-size: 16px;
+    margin-top: 8px;
+    font-family: 'Courier New', Courier, monospace;
+    text-align: left;
+    word-wrap: normal;
+    white-space: normal;
+    
+}
 
 .event-indicator {
     position: absolute;

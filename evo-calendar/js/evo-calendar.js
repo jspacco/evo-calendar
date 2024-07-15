@@ -156,7 +156,8 @@
                         console.log("%c Event named: \""+_.options.calendarEvents[i].name+"\" doesn't have a unique ID ", "color:white;font-weight:bold;background-color:#e21d1d;");
                     }
                     if(_.isValidDate(_.options.calendarEvents[i].date)) {
-                        _.options.calendarEvents[i].date = _.formatDate(_.options.calendarEvents[i].date, _.options.format)
+                        const d = _.formatDate(_.options.calendarEvents[i].date, _.options.format);
+                        _.options.calendarEvents[i].date = d;
                     }
                 }
             }
@@ -290,6 +291,7 @@
 
     // v1.1.2 - Check and filter strings
     EvoCalendar.prototype.stringCheck = function(d) {
+        //console.log(typeof d);
         return d.replace(/[^\w]/g, '\\$&');
     }
             
@@ -311,15 +313,29 @@
     // v1.0.0 - Format date
     EvoCalendar.prototype.formatDate = function(date, format, language) {
         var _ = this;
+        const origFormat = format;
         if (!date)
             return '';
+
         language = language ? language : _.defaults.language
-        if (typeof format === 'string')
+        if (typeof format === 'string') {
             format = _.parseFormat(format);
+        }
         if (format.toDisplay)
             return format.toDisplay(date, format, language);
 
         var ndate = new Date(date);
+        // FIXME: Workaround because dates in yyyy-mm-dd format are parsed as being in UTC
+        // but then converted to local timezone, so we go backwards a day. Ugh.
+        if (typeof date == 'string' && date.match(/\d{4}-\d{2}-\d{2}/)) {
+            // if the date is string and matches yyyy-mm-dd format, then create it like this
+            // apparently this will handle the time zones correctly
+            const [year, month, day] = date.split('-').map(Number);
+            ndate = new Date(year, month - 1, day);
+        }
+        
+        //console.log(date + ' ' + origFormat + ' ' + ' ' + format.separators + ' ' + format.parts + ' ' + ndate);
+        
         // if (!_.isValidDate(ndate)) { // test
         //     ndate = new Date(date.replace(/-/g, '/'))
         // }
@@ -627,6 +643,7 @@
         if (_.options.calendarEvents) {
             for (var i = 0; i < _.options.calendarEvents.length; i++) {
                 if(_.isBetweenDates(_.$active.date, _.options.calendarEvents[i].date)) {
+                    //console.log(_.options.calendarEvents[i]);
                     eventAdder(_.options.calendarEvents[i])
                 }
                 else if (_.options.calendarEvents[i].everyYear) {
@@ -663,17 +680,50 @@
         var eventListEl = _.$elements.eventEl.find('.event-list');
         if (eventListEl.find('[data-event-index]').length === 0) eventListEl.empty();
         _.$active.events.push(event_data);
-        markup = '<div class="event-container" role="button" data-event-index="'+(event_data.id)+'">';
-        markup += '<div class="event-icon"><div class="event-bullet-'+event_data.type+'"';
-        if (event_data.color) {
-            markup += 'style="background-color:'+event_data.color+'"'
+        
+        // precompute the color, badge, description, location
+        var color = event_data.color ? `style="background-color:{$event_data.color}"` : '';
+        var badge = event_data.badge ? `<span>${event_data.badge}</span>` : '';
+        var description = event_data.description ? `<p class="event-desc">${event_data.description}</p>` : '';
+        
+        var mappin = `<img src="/Users/jaimespacco/Documents/Knox/141-redesign/evo-calendar/img/map-pin2.png" width="16px"></img>`;
+        var location = event_data.location ? `<p class="event-loc">${mappin} &nbsp;&nbsp; ${event_data.location}</p>` : '';
+
+        var tags = '';
+        if (event_data.tags) {
+            tags += "<p class='event-tags'>";
+            tags += event_data.tags.map((tag) => `#${tag}`).join(' ');
+            tags += "</p>";
         }
-        markup += '></div></div><div class="event-info"><p class="event-title">'+_.limitTitle(event_data.name);
-        if (event_data.badge) markup += '<span>'+event_data.badge+'</span>';
-        markup += '</p>'
-        if (event_data.description) markup += '<p class="event-desc">'+event_data.description+'</p>';
-        markup += '</div>';
-        markup += '</div>';
+
+        markup = `
+        <div class="event-container" role="button" data-event-index="${event_data.id}">
+            <div class="event-icon">
+                <div class="event-bullet-${event_data.type}" ${color}>
+                </div>
+            </div>
+            <div class="event-info">
+                <p class="event-title">${_.limitTitle(event_data.name)}
+                ${badge}
+                </p>
+                ${description}
+                ${location}
+                ${tags}
+            </div>
+        </div>
+        `;
+
+        //markup = '<div class="event-container" role="button" data-event-index="'+(event_data.id)+'">';
+        //markup += '<div class="event-icon"><div class="event-bullet-'+event_data.type+'"';
+        // if (event_data.color) {
+        //     markup += 'style="background-color:'+event_data.color+'"'
+        // }
+        //markup += '></div></div><div class="event-info"><p class="event-title">'+_.limitTitle(event_data.name);
+        //if (event_data.badge) markup += '<span>'+event_data.badge+'</span>';
+        //markup += '</p>'
+        //if (event_data.description) markup += '<p class="event-desc">'+event_data.description+'</p>';
+        //markup += '</div>';
+        //markup += '</div>';
         eventListEl.append(markup);
 
         _.$elements.eventEl.find('[data-event-index="'+(event_data.id)+'"]')
@@ -777,6 +827,7 @@
     EvoCalendar.prototype.addEventIndicator = function(event) {
         var _ = this, htmlToAppend, thisDate;
         var event_date = event.date;
+        //console.log(event);
         var type = _.stringCheck(event.type);
         
         if (event_date instanceof Array) {
