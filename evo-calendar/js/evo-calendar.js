@@ -743,7 +743,7 @@
                 </div>
             </div>
             <div class="event-info">
-                <p class="event-title">${_.limitTitle(event_data.name)}
+                <p class="event-title">${event_data.name}
                 ${badge}
                 </p>
                 <p class="event-year">${year}</p>
