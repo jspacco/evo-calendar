@@ -256,6 +256,7 @@
             if (_.options.theme) _.setTheme(_.options.theme); // set calendar theme
             _.buildTheBones(); // start building the calendar components
         
+            //TODO: this doesn't seem to work
             populateSelectOptions();
     
             $('#digit1, #digit2, #digit3, #digit4').change(function() {
@@ -754,17 +755,6 @@
         </div>
         `;
 
-        //markup = '<div class="event-container" role="button" data-event-index="'+(event_data.id)+'">';
-        //markup += '<div class="event-icon"><div class="event-bullet-'+event_data.type+'"';
-        // if (event_data.color) {
-        //     markup += 'style="background-color:'+event_data.color+'"'
-        // }
-        //markup += '></div></div><div class="event-info"><p class="event-title">'+_.limitTitle(event_data.name);
-        //if (event_data.badge) markup += '<span>'+event_data.badge+'</span>';
-        //markup += '</p>'
-        //if (event_data.description) markup += '<p class="event-desc">'+event_data.description+'</p>';
-        //markup += '</div>';
-        //markup += '</div>';
         eventListEl.append(markup);
 
         _.$elements.eventEl.find('[data-event-index="'+(event_data.id)+'"]')
@@ -890,6 +880,7 @@
         }
 
         function appendDot(date) {
+            //TODO: fix this method
             thisDate = _.$elements.innerEl.find('[data-date-val="'+date+'"]');
 
             if (thisDate.find('span.event-indicator').length === 0) {
@@ -1257,7 +1248,7 @@ function updateYear() {
 
     if (digit1 && digit2 && digit3 && digit4) {
         const year = `${digit1}${digit2}${digit3}${digit4}`;
-        $('#selected-year').text(`Selected Year: ${year}`);
+        //$('#selected-year').text(`Selected Year: ${year}`);
 
         if (year[0] == '0') {
             y = parseInt(year);
