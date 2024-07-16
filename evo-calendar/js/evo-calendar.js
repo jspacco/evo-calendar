@@ -712,7 +712,7 @@
         
         // precompute the color, badge, description, location
         var color = event_data.color ? `style="background-color:{$event_data.color}"` : '';
-        var badge = event_data.badge ? `<span>${event_data.badge}</span>` : '';
+        var badge = `<span>${event_data.type}</span>`;
         var year = new Date(event_data.date).getFullYear();
         var description = event_data.description ? `<p class="event-desc">${event_data.description}</p>` : '';
         
@@ -748,6 +748,7 @@
                 <p class="event-year">${year}</p>
                 ${description}
                 ${location}
+                <p class="event-username">${event_data.username}</p>
                 ${tags}
             </div>
         </div>
