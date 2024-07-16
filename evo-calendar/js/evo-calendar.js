@@ -255,6 +255,12 @@
             }
             if (_.options.theme) _.setTheme(_.options.theme); // set calendar theme
             _.buildTheBones(); // start building the calendar components
+        
+            populateSelectOptions();
+    
+            $('#digit1, #digit2, #digit3, #digit4').change(function() {
+                updateYear();
+            });
         }
     };
     // v1.0.0 - Destroy plugin
@@ -561,9 +567,32 @@
             var markup;
 
             // --- BUILDING MARKUP BEGINS --- //
-
+            // for selecting years digit by digit
+            markup = `
+        <div class="year-selector">
+            <select id="digit1" onchange="updateYear()">
+                <option value="">1st Digit</option>
+                <!-- Generate options dynamically -->
+            </select>
+    
+            <select id="digit2" onchange="updateYear()">
+                <option value="">2nd Digit</option>
+                <!-- Generate options dynamically -->
+            </select>
+    
+            <select id="digit3" onchange="updateYear()">
+                <option value="">3rd Digit</option>
+                <!-- Generate options dynamically -->
+            </select>
+    
+            <select id="digit4" onchange="updateYear()">
+                <option value="">4th Digit</option>
+                <!-- Generate options dynamically -->
+            </select>
+        </div>`;
+    
             // sidebar
-            markup = '<div class="calendar-sidebar">'+
+            markup += '<div class="calendar-sidebar">'+
                         '<div class="calendar-year">'+
                         '<button class="icon-button" role="button" data-year-val="prev" title="'+_.initials.dates[_.options.language].previousYearText+'">'+
                                 '<span class="chevron-arrow-left"></span>'+
@@ -684,10 +713,20 @@
         // precompute the color, badge, description, location
         var color = event_data.color ? `style="background-color:{$event_data.color}"` : '';
         var badge = event_data.badge ? `<span>${event_data.badge}</span>` : '';
+        var year = new Date(event_data.date).getFullYear();
         var description = event_data.description ? `<p class="event-desc">${event_data.description}</p>` : '';
         
-        var mappin = `<img src="/Users/jaimespacco/Documents/Knox/141-redesign/evo-calendar/img/map-pin2.png" width="16px"></img>`;
-        var location = event_data.location ? `<p class="event-loc">${mappin} &nbsp;&nbsp; ${event_data.location}</p>` : '';
+        
+        // base64 encoding the image
+        // linking to the flaticon site to credit the creator of the icon
+        var map_pin = `<a href="https://www.flaticon.com/free-icons/maps-and-location" 
+            title="Maps and location icons created by pojok d - Flaticon"
+            target="_blank">
+<img src="data:image/png;base64,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" 
+            width="16px" alt="Maps and location icons created by pojok d - Flaticon"/>
+            </a>`;
+            
+        var location = event_data.location ? `<p class="event-loc">${map_pin} &nbsp;&nbsp; ${event_data.location}</p>` : '';
 
         var tags = '';
         if (event_data.tags) {
@@ -706,6 +745,7 @@
                 <p class="event-title">${_.limitTitle(event_data.name)}
                 ${badge}
                 </p>
+                <p class="event-year">${year}</p>
                 ${description}
                 ${location}
                 ${tags}
@@ -1179,3 +1219,54 @@
     };
 
 }));
+
+// jspacco adding these functions
+function populateSelectOptions() {
+    const digit1Select = $('#digit1');
+    const digit2Select = $('#digit2');
+    const digit3Select = $('#digit3');
+    const digit4Select = $('#digit4');
+
+    // digit 1 can only be 0, 1, 2 (no dates in the 3000s yet)
+    for (let i = 0; i <= 2; i++) {
+        digit1Select.append($('<option>', { value: i, text: i }));
+    }
+    // Populate options for each other digit with values 0-9
+    for (let i = 0; i <= 9; i++) {
+        digit2Select.append($('<option>', { value: i, text: i }));
+        digit3Select.append($('<option>', { value: i, text: i }));
+        digit4Select.append($('<option>', { value: i, text: i }));
+    }
+    setYearSelector(2024);
+}
+
+function setYearSelector(year) {
+    const yearString = year.toString();
+    $('#digit1').val(yearString[0]);
+    $('#digit2').val(yearString[1]);
+    $('#digit3').val(yearString[2]);
+    $('#digit4').val(yearString[3]);
+}
+
+function updateYear() {
+    const digit1 = $('#digit1').val();
+    const digit2 = $('#digit2').val();
+    const digit3 = $('#digit3').val();
+    const digit4 = $('#digit4').val();
+
+    if (digit1 && digit2 && digit3 && digit4) {
+        const year = `${digit1}${digit2}${digit3}${digit4}`;
+        $('#selected-year').text(`Selected Year: ${year}`);
+
+        if (year[0] == '0') {
+            y = parseInt(year);
+            console.log(y);
+            $('#calendar').evoCalendar('selectYear', parseInt(year));
+        } else {
+            $('#calendar').evoCalendar('selectYear', year);
+        }
+
+    } else {
+        $('#selected-year').text('Please select all year components.');
+    }
+}

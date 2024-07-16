@@ -431,6 +431,12 @@ tr.calendar-body .calendar-day .day[disabled] {
     text-align: left;
 }
 
+.event-container > .event-info > p.event-year {
+    font-size: 19px;
+    margin-top: 8px;
+    font-weight: bold;
+}
+
 .event-container > .event-info > p.event-tags {
     font-size: 16px;
     margin-top: 8px;
